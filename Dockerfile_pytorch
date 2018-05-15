@@ -1,0 +1,54 @@
+
+# TODO(@bileg): Modified https://raw.githubusercontent.com/pytorch/pytorch/master/docker/pytorch/Dockerfile
+
+FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        locales \
+        build-essential \
+        cmake \
+        git \
+        curl \
+        vim \
+        wget \
+        unzip \
+        ca-certificates \
+        libjpeg-dev \
+        libpng-dev &&\
+    rm -rf /var/lib/apt/lists/*
+
+
+RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh  && \
+    chmod +x ~/miniconda.sh && \
+    ~/miniconda.sh -b -p /opt/conda && \
+    rm ~/miniconda.sh && \
+    /opt/conda/bin/conda install numpy pyyaml scipy ipython mkl mkl-include && \
+    /opt/conda/bin/conda install -c soumith magma-cuda90 && \
+    /opt/conda/bin/conda clean -ya
+ENV PATH /opt/conda/bin:$PATH
+
+
+RUN pip install --upgrade --no-cache-dir \
+    http://download.pytorch.org/whl/cu90/torch-0.4.0-cp36-cp36m-linux_x86_64.whl \
+    git+git://github.com/pytorch/vision@master \
+    git+git://github.com/pytorch/text@master \
+    git+git://github.com/jekbradbury/revtok@master \
+    pandas \
+    tqdm \
+    requests \
+    allennlp \
+    spacy
+
+
+RUN python -m spacy download en
+RUN python -m spacy download fr
+RUN python -m spacy download it
+
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+WORKDIR /home/docker
+
+CMD ["bash"]
